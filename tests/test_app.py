@@ -9,6 +9,16 @@ import app
 
 
 class ReviewTests(unittest.TestCase):
+    def test_malformed_citations_do_not_crash(self):
+        for ids in (None, 'repo', 42, {'repo': True}):
+            report = app.validate_report({'checks': [{'status': 'verified', 'evidence_ids': ids}]}, [{'id': 'repo'}])
+            self.assertEqual(report['checks'][0]['status'], 'needs_review')
+
+    def test_unverified_notes_cannot_verify_a_requirement(self):
+        report = app.validate_report({'checks': [{'status': 'verified', 'evidence_ids': ['notes', 'notes']}]}, [{'id': 'notes'}])
+        self.assertEqual(report['checks'][0]['status'], 'needs_review')
+        self.assertEqual(report['checks'][0]['evidence_ids'], ['notes'])
+
     def test_vercel_https_origin(self):
         handler = app.Handler.__new__(app.Handler)
         handler.path = '/api/analyze'

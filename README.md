@@ -2,6 +2,10 @@
 
 An evidence-based hackathon submission reviewer, built as a Python web application. Runs with **Python 3.10+ and no pip dependencies**.
 
+**Live demo:** https://proofdesk-blond.vercel.app · **[Judge instructions](JUDGE_ACCESS.md)** · **[Measured Nebius feedback](NEBIUS_FEEDBACK.md)**
+
+Use the repository example buttons to load the owner's public ProofDesk, Care-Flow, or inkloom repository. They fill the URL only; click Review submission to run real inference. These are separate from the offline illustrative sample report.
+
 ## Run
 
 Open a terminal in this folder:

@@ -85,11 +85,14 @@ def validate_report(report, evidence):
     for c in report['checks'][:30]:
         if not isinstance(c, dict):
             continue
-        ids = [i for i in c.get('evidence_ids', []) if isinstance(i, str) and i in valid_ids]
+        raw_ids = c.get('evidence_ids', [])
+        if not isinstance(raw_ids, list):
+            raw_ids = []
+        ids = list(dict.fromkeys(i for i in raw_ids if isinstance(i, str) and i in valid_ids))
         status = c.get('status', 'needs_review')
         if status not in ('verified', 'missing', 'needs_review'):
             status = 'needs_review'
-        if status == 'verified' and not ids:
+        if status == 'verified' and not any(i != 'notes' for i in ids):
             status = 'needs_review'
         checks.append({'requirement': str(c.get('requirement', 'Requirement')), 'status': status, 'reason': str(c.get('reason', '')), 'action': str(c.get('action', '')), 'evidence_ids': ids})
     if not checks:
