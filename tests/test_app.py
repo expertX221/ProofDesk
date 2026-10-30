@@ -1,5 +1,6 @@
 import json
 import io
+import importlib.util
 import threading
 import unittest
 import urllib.error
@@ -9,6 +10,18 @@ import app
 
 
 class ReviewTests(unittest.TestCase):
+    @unittest.skipUnless(importlib.util.find_spec('reportlab'), 'PDF support not installed')
+    def test_pdf_export_is_parseable_and_preserves_report(self):
+        from pdf_report import create_report_pdf
+        from pypdf import PdfReader
+        data = {'mode': 'live', 'summary': 'A & B <review>', 'checks': [{'requirement': 'Include a license', 'status': 'missing', 'reason': 'Absent from evidence.', 'action': 'Add a license.', 'evidence_ids': []}]}
+        pdf = create_report_pdf(data)
+        self.assertTrue(pdf.startswith(b'%PDF-'))
+        text = ''.join(p.extract_text() for p in PdfReader(io.BytesIO(pdf)).pages)
+        self.assertIn('A & B <review>', text)
+        self.assertIn('Include a license', text)
+        self.assertIn('Add a license.', text)
+
     def test_malformed_citations_do_not_crash(self):
         for ids in (None, 'repo', 42, {'repo': True}):
             report = app.validate_report({'checks': [{'status': 'verified', 'evidence_ids': ids}]}, [{'id': 'repo'}])

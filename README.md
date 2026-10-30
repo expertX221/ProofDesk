@@ -1,6 +1,6 @@
 # ProofDesk
 
-An evidence-based hackathon submission reviewer, built as a Python web application. Runs with **Python 3.10+ and no pip dependencies**.
+An evidence-based hackathon submission reviewer, built as a Python web application. The core reviewer uses Python's standard library; **PDF export uses ReportLab**.
 
 **Live demo:** https://proofdesk-blond.vercel.app · **[Judge instructions](JUDGE_ACCESS.md)** · **[Measured Nebius feedback](NEBIUS_FEEDBACK.md)**
 
@@ -15,6 +15,8 @@ python app.py
 ```
 
 Visit http://127.0.0.1:8000 in your browser. Click **Explore a sample report** for an illustrative report without an API key. A Python interpreter runs the backend; the interface opens in a browser. In an IDE, run `app.py` and keep it running.
+
+Install PDF export support first with `python -m pip install -r requirements.txt`. The browser's **Download PDF** button exports the current report without another model call. PDF generation happens in server memory and does not save reports on the server. JSON export remains available.
 
 ## Enable real NVIDIA inference on Nebius
 

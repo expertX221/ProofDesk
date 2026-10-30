@@ -135,6 +135,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', str(len(body)))
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('Cache-Control', 'no-store')
+        if content_type == 'application/pdf':
+            self.send_header('Content-Disposition', 'attachment; filename="proofdesk-review.pdf"')
         self.end_headers()
         self.wfile.write(body)
 
@@ -151,7 +153,7 @@ class Handler(BaseHTTPRequestHandler):
             self.send(404, {'error': 'Not found'})
 
     def do_POST(self):
-        if self.path != '/api/analyze':
+        if self.path not in ('/api/analyze', '/api/export/pdf'):
             return self.send(404, {'error': 'Not found'})
         # Prevent other websites from triggering paid inference on the local server.
         scheme = 'https' if os.environ.get('VERCEL') else 'http'
@@ -159,12 +161,17 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(403, {'error': 'Cross-origin request rejected'})
         try:
             length = int(self.headers.get('Content-Length', '0'))
-            if not 0 < length <= 40000:
-                raise ValueError('Request must be between 1 and 40,000 bytes.')
+            max_length = 250000 if self.path == '/api/export/pdf' else 40000
+            if not 0 < length <= max_length:
+                raise ValueError(f'Request must be between 1 and {max_length:,} bytes.')
             data = json.loads(self.rfile.read(length))
             if not isinstance(data, dict):
                 raise ValueError('Expected a JSON object.')
-            self.send(200, analyze(data))
+            if self.path == '/api/export/pdf':
+                from pdf_report import create_report_pdf
+                self.send(200, create_report_pdf(data), 'application/pdf')
+            else:
+                self.send(200, analyze(data))
         except (ValueError, UnicodeDecodeError) as exc:
             self.send(400, {'error': str(exc)})
         except Exception:
