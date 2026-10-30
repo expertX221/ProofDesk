@@ -1,4 +1,5 @@
 import json
+import io
 import threading
 import unittest
 import urllib.error
@@ -8,6 +9,15 @@ import app
 
 
 class ReviewTests(unittest.TestCase):
+    def test_vercel_https_origin(self):
+        handler = app.Handler.__new__(app.Handler)
+        handler.path = '/api/analyze'
+        handler.headers = {'Origin': 'https://proofdesk.vercel.app', 'Host': 'proofdesk.vercel.app', 'Content-Length': '2'}
+        handler.rfile = io.BytesIO(b'{}')
+        with patch.dict(app.os.environ, {'VERCEL': '1'}), patch.object(app, 'analyze', return_value={'mode': 'live'}), patch.object(handler, 'send') as send:
+            handler.do_POST()
+            send.assert_called_once_with(200, {'mode': 'live'})
+
     def test_unfounded_verification_downgraded(self):
         report = app.validate_report({'checks': [{'requirement': 'License', 'status': 'verified', 'evidence_ids': ['invented']}]}, [{'id': 'repo'}])
         self.assertEqual(report['checks'][0]['status'], 'needs_review')

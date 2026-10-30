@@ -151,7 +151,8 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != '/api/analyze':
             return self.send(404, {'error': 'Not found'})
         # Prevent other websites from triggering paid inference on the local server.
-        if self.headers.get('Origin') and self.headers['Origin'] != 'http://' + self.headers.get('Host', ''):
+        scheme = 'https' if os.environ.get('VERCEL') else 'http'
+        if self.headers.get('Origin') and self.headers['Origin'] != scheme + '://' + self.headers.get('Host', ''):
             return self.send(403, {'error': 'Cross-origin request rejected'})
         try:
             length = int(self.headers.get('Content-Length', '0'))

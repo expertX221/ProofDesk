@@ -52,6 +52,23 @@ The key remains in the server environment. Reports are held in browser memory; d
 
 ## Deploy as a website
 
+### Vercel
+
+The repository includes `api/index.py` and `vercel.json`. It uses Vercel's Python Functions runtime and retains the dependency-free local launch.
+
+1. In Vercel, import `expertX221/ProofDesk` from GitHub.
+2. Choose **Other** as the framework preset and the repository root as the Root Directory. Leave Build Command and Output Directory unset.
+3. In the project's Environment Variables, add a **new, unexposed** `NEBIUS_API_KEY` for Production. Never commit `.env` to GitHub. If a key was previously committed, revoke it in Nebius and generate a replacement.
+4. Deploy the latest `main` commit. If adding secrets after deploying, redeploy to apply them.
+5. Open the deployment URL, test the sample, then complete a live repository review.
+6. Confirm judges can open the production URL without your Vercel account; if access protection is enabled, provide the required judge access instructions.
+
+The app requests a 300-second function duration. A deployment and real inference request must still be tested on the target account. Keep hosting and Nebius access active through judging. No public deployment has been verified by these instructions.
+
+Official runtime reference: https://vercel.com/docs/functions/runtimes/python
+
+### Container hosting
+
 A Dockerfile is included. On a Python/container hosting service, configure `NEBIUS_API_KEY` as a secret and run:
 
 ```text
