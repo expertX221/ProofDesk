@@ -161,10 +161,18 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(403, {'error': 'Cross-origin request rejected'})
         try:
             length = int(self.headers.get('Content-Length', '0'))
-            max_length = 250000 if self.path == '/api/export/pdf' else 40000
+            max_length = 750000 if self.path == '/api/export/pdf' else 40000
             if not 0 < length <= max_length:
                 raise ValueError(f'Request must be between 1 and {max_length:,} bytes.')
-            data = json.loads(self.rfile.read(length))
+            body = self.rfile.read(length)
+            if self.path == '/api/export/pdf' and self.headers.get('Content-Type', '').startswith('application/x-www-form-urlencoded'):
+                fields = urllib.parse.parse_qs(body.decode('utf-8'), max_num_fields=2)
+                raw_report = fields.get('report', [''])[0]
+                if len(raw_report) > 250000:
+                    raise ValueError('Report is too large for PDF export.')
+                data = json.loads(raw_report)
+            else:
+                data = json.loads(body)
             if not isinstance(data, dict):
                 raise ValueError('Expected a JSON object.')
             if self.path == '/api/export/pdf':

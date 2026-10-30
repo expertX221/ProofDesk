@@ -41,6 +41,18 @@ class ReviewTests(unittest.TestCase):
             handler.do_POST()
             send.assert_called_once_with(200, {'mode': 'live'})
 
+    def test_pdf_form_download_accepts_browser_submission(self):
+        handler = app.Handler.__new__(app.Handler)
+        handler.path = '/api/export/pdf'
+        data = {'checks': [{'status': 'missing', 'requirement': 'License'}]}
+        body = app.urllib.parse.urlencode({'report': json.dumps(data)}).encode()
+        handler.headers = {'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': str(len(body))}
+        handler.rfile = io.BytesIO(body)
+        with patch('pdf_report.create_report_pdf', return_value=b'%PDF-test') as create, patch.object(handler, 'send') as send:
+            handler.do_POST()
+            create.assert_called_once_with(data)
+            send.assert_called_once_with(200, b'%PDF-test', 'application/pdf')
+
     def test_unfounded_verification_downgraded(self):
         report = app.validate_report({'checks': [{'requirement': 'License', 'status': 'verified', 'evidence_ids': ['invented']}]}, [{'id': 'repo'}])
         self.assertEqual(report['checks'][0]['status'], 'needs_review')
